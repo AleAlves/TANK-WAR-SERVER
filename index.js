@@ -13,7 +13,6 @@ server.listen(port, function () {
 });
 
 var client = new Array(0);
-var acessos = 0;
 
 io.sockets.on('connection', function (socket) {
     if(client.length < 2 ){
