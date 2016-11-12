@@ -1,5 +1,7 @@
 {
-  "start": "node index.js",
+  "scripts": {
+    "start": "node index.js"
+  }
   "private": true,
   "name": "pipe-of-war-server",
   "version": "1.0.1",
