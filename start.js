@@ -1,7 +1,6 @@
 console.log("Server on");
 
 var express = require('express');
-var beep = require('beepbeep');
 var app = express();
 var server = require('http').createServer(app);
 var io = require('socket.io')(server);
@@ -57,7 +56,6 @@ io.sockets.on('connection', function (socket) {
       for(var j = 0; j < 2; j++)
           client.pop();
         console.log("saiu...Paritda encerrada, sala esvaziada:"+client.length);
-        beep();
     });
     }
     else{
