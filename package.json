@@ -1,4 +1,5 @@
 {
+  "start": "node index.js",
   "private": true,
   "name": "pipe-of-war-server",
   "version": "1.0.1",
@@ -6,8 +7,5 @@
   "dependencies": {
     "express": "4.10.2",
     "socket.io": "1.2.0"
-  },
-  "scripts": {
-    "start": "node server.js"
   }
 }
