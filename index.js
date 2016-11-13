@@ -12,6 +12,11 @@ server.listen(port, function () {
   console.log('Server listening at port %d', port);
 });
 
+app.get('/', function(req, res){
+  res.sendFile('index.html' , { root : __dirname});
+});
+
+
 var client = new Array(0);
 
 io.sockets.on('connection', function (socket) {
