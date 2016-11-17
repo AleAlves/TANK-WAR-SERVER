@@ -1,2 +1,2 @@
 # pipeofwarserver
-game server
+game server running on RedHat OpenShift.
