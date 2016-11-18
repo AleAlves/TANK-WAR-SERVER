@@ -16,50 +16,56 @@ app.get('/', function(req, res){
   res.sendfile('index.html');
 });
 
-
 var client = new Array(0);
+var clientId = new Array(0);
+var room = [];
+var indexRoom = 0;
+var acessos = 0;
+var par = 2;
+var count = 0;
+
+for(var i = 0; i < 100; i++)
+    room[i] = i.toString();
 
 io.sockets.on('connection', function (socket) {
-    if(client.length < 2 ){
+    if(client.length < 100 ){
 
       socket.emit('id',client.length%2);
-
-      client[client.length%2] = socket;
-
-      if(client.length == 2){
-            for(var i = 0; i < client.length;i++){
-                client[i].emit('gameOn',1);
-            }
+      clientId[socket.id] = socket;
+      client[client.length] = clientId[(socket.id).toString()];
+      acessos++;
+      if(acessos > par){
+          par+=2;
+          indexRoom++;
+          room[indexRoom];
+          count = 0;
+      }
+      socket.join(room[indexRoom]);
+      count++;
+      console.log("Entrou na sala: "+room[indexRoom]+"/"+count);
+      console.log("New connection:  " +  socket.request.connection.remoteAddress +" Player Online:  "+client.length +" Index: "+client.indexOf(socket)+" "+socket.id);
+    
+       if(count == 2){
+           var i = client.length;
+           var j = client.length;
+           i= i - 1;
+           j = j - 2;
+           console.log("i "+i+" j "+j);
+            client[i].emit('gameOn',j);
+            client[j].emit('gameOn',i);
             console.log('Game on');
         }
 
-      console.log("New connection:  " +  socket.request.connection.remoteAddress +" Player Online:  "+client.length +" Index: "+client.indexOf(socket));
+       socket.on('update', function(id,msg){
+               client[id].emit("serverData",msg);
+       });
 
-      socket.on('update', function(id,msg){
+      socket.on('disconnect', function() {
 
-          switch(id)
-          {
-            case 0:
-                if(client.length == 2){
-                  client[1].emit('serverData', msg);
-                }
-              break;
-            case 1:
-                if(client.length == 2){
-                  client[0].emit('serverData', msg);
-                }
-              break;
-          }
+      console.log("saiu...Paritda encerrada"+client.length+" - "+socket.id);
+      client.splice(clientId.indexOf(socket.id),1);
+      console.log("Jogadores Online"+client.length);
 
-    }, 0);
-
-    socket.on('disconnect', function(socket) {
-      for(var i = 0; i < client.length; i++){
-            client[i].emit("off",1);
-      }
-      for(var j = 0; j < 2; j++)
-          client.pop();
-        console.log("saiu...Paritda encerrada, sala esvaziada:"+client.length);
     });
     }
     else{
