@@ -5,7 +5,7 @@ var app = express();
 var server = require('http').createServer(app);
 var io = require('socket.io')(server);
 var port = 8080;
-io.set('heartbeat interval', 1);
+io.set('heartbeat interval', 1000);
 io.set('heartbeat timeout', 240000);
 
 server.listen(port, function () {
