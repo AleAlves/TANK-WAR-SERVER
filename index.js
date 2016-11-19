@@ -30,9 +30,9 @@ for(var i = 0; i < 100; i++)
 io.sockets.on('connection', function (socket) {
     if(client.length < 100 ){
 
-      socket.emit('id',client.length%2);
+      socket.emit('id',client.length);
       clientId[socket.id] = socket;
-      client[client.length] = clientId[(socket.id).toString()];
+      client[client.length] = clientId[(socket.id)];
       acessos++;
       if(acessos > par){
           par+=2;
@@ -46,27 +46,35 @@ io.sockets.on('connection', function (socket) {
       console.log("New connection:  " +  socket.request.connection.remoteAddress +" Player Online:  "+client.length +" Index: "+client.indexOf(socket)+" "+socket.id);
     
        if(count == 2){
-           var i = client.length;
-           var j = client.length;
-           i= i - 1;
-           j = j - 2;
-           console.log("i "+i+" j "+j);
+            var i = client.length;
+            var j = client.length;
+            i= i - 1;
+            j = j - 2;
             client[i].emit('gameOn',j);
             client[j].emit('gameOn',i);
             console.log('Game on');
+            count = 0;
         }
 
        socket.on('update', function(id,msg){
-               client[id].emit("serverData",msg);
+           try{
+               if(id<=client.length)
+                client[id].emit('serverData', msg);
+           }catch(e){
+                socket.emit('off',1);
+                console.log("Oponente desconectou");
+            }
        });
 
       socket.on('disconnect', function() {
-
-      console.log("saiu...Paritda encerrada"+client.length+" - "+socket.id);
-      client.splice(clientId.indexOf(socket.id),1);
-      console.log("Jogadores Online"+client.length);
-
-    });
+          try{
+            var socketId = socket.id;
+            console.log("saiu...Paritda encerrada "+client.length+" - "+ socketId);
+            acessos--;
+            count--;
+            client.splice(clientId.indexOf(socketId),1);
+          }catch(e){ console.log(e);}
+      });
     }
     else{
         console.log("sala cheia");
