@@ -1,11 +1,11 @@
 console.log("Server on");
-/*
+
 var express = require('express');
 var app = express();
 var server = require('http').createServer(app);
 var io = require('socket.io')(server);
 var port = 8080;
-io.set('heartbeat interval', 1000);
+io.set('heartbeat interval', 1);
 io.set('heartbeat timeout', 240000);
 
 server.listen(port, function () {
@@ -18,49 +18,33 @@ app.get('/', function(req, res){
 
 var client = new Array(0);
 var clientId = new Array(0);
-var room = [];
-var indexRoom = 0;
-var acessos = 0;
-var par = 2;
-var count = 0;
-
-for(var i = 0; i < 100; i++)
-    room[i] = i.toString();
+var acessos = -1;
+var par = 0;
 
 io.sockets.on('connection', function (socket) {
     if(client.length < 100 ){
 
-      socket.emit('id',client.length);
-      clientId[socket.id] = socket;
-      client[client.length] = clientId[(socket.id)];
-      acessos++;
-      if(acessos > par){
-          par+=2;
-          indexRoom++;
-          room[indexRoom];
-          count = 0;
-      }
-      socket.join(room[indexRoom]);
-      count++;
-      console.log("Entrou na sala: "+room[indexRoom]+"/"+count);
-      console.log("New connection:  " +  socket.request.connection.remoteAddress +" Player Online:  "+client.length +" Index: "+client.indexOf(socket)+" "+socket.id);
+        acessos++;
+        par++;
+        clientId[acessos] = socket.id;
+        client[acessos] = socket;
+        client[clientId.indexOf(socket.id)].emit('id',client.length);
+        console.log("New connection:  " +  socket.request.connection.remoteAddress +" Player Online:  "+client.length +" Index: "+client.indexOf(socket)+" "+socket.id+" Acessos:"+acessos+"  Par:"+par);
     
-       if(count == 2){
-            var i = client.length;
-            var j = client.length;
-            i= i - 1;
-            j = j - 2;
-            client[i].emit('gameOn',j);
-            client[j].emit('gameOn',i);
+       if(par == 2){
+            var i = client.indexOf(socket);
+            var j = i;
+            j--;
+            client[i].emit('gameOn',clientId[j]);
+            client[j].emit('gameOn',clientId[i]);
             console.log('Game on');
-            count = 0;
+            par = 0;
         }
 
-       socket.on('update', function(id,msg){
-           try{
-               if(id<=client.length)
-                client[id].emit('serverData', msg);
-           }catch(e){
+        socket.on('update', function(id,msg){
+            try{
+                client[clientId.indexOf(id)].emit('serverData', msg);
+            }catch(e){
                 socket.emit('off',1);
                 console.log("Oponente desconectou");
             }
@@ -68,11 +52,16 @@ io.sockets.on('connection', function (socket) {
 
       socket.on('disconnect', function() {
           try{
-            var socketId = socket.id;
-            console.log("saiu...Paritda encerrada "+client.length+" - "+ socketId);
-            acessos--;
-            count--;
-            client.splice(clientId.indexOf(socketId),1);
+              var index = clientId.indexOf(socket.id);
+              console.log("saiu...Paritda encerrada "+client.length+" - "+ socket.id);
+              if(clientId.indexOf(socket.id)%2 == 0)
+                index++;
+                else
+                if(clientId.indexOf(socket.id)%2 == 1)
+                    index--;
+              client[index].emit('off',1);
+              acessos-2;
+              par = 0;
           }catch(e){ console.log(e);}
       });
     }
@@ -80,4 +69,4 @@ io.sockets.on('connection', function (socket) {
         console.log("sala cheia");
         socket.emit("full",1);
     }
-});*/
+});
