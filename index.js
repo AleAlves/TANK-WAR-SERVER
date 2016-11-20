@@ -1,5 +1,5 @@
 console.log("Server on");
-
+/*
 var express = require('express');
 var app = express();
 var server = require('http').createServer(app);
@@ -80,4 +80,4 @@ io.sockets.on('connection', function (socket) {
         console.log("sala cheia");
         socket.emit("full",1);
     }
-});
+});*/
