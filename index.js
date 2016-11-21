@@ -27,10 +27,10 @@ io.sockets.on('connection', function (socket) {
         acessos++;
         par++;
         clientId[acessos] = socket.id;
-        client[acessos] = socket;
+        client.push(socket);
         client[clientId.indexOf(socket.id)].emit('id',client.length);
         console.log("New connection:  " +  socket.request.connection.remoteAddress +" Player Online:  "+client.length +" Index: "+client.indexOf(socket)+" "+socket.id+" Acessos:"+acessos+"  Par:"+par);
-    
+
        if(par == 2){
             var i = client.indexOf(socket);
             var j = i;
@@ -52,17 +52,11 @@ io.sockets.on('connection', function (socket) {
 
       socket.on('disconnect', function() {
           try{
-              var index = clientId.indexOf(socket.id);
-              console.log("saiu...Paritda encerrada "+client.length+" - "+ socket.id);
-              if(clientId.indexOf(socket.id)%2 == 0)
-                index++;
-                else
-                if(clientId.indexOf(socket.id)%2 == 1)
-                    index--;
-              client[index].emit('off',1);
-              acessos--;
-              par = 0;
-          }catch(e){ console.log(e);}
+              console.log("saiu...Paritda encerrada "+client.length+" - "+ socket.id+" removido em:"+clientId.indexOf(socket.id));
+              if(acessos > 0 && par > 0){
+                par--;
+              }
+          }catch(e){ console.log("disconnect error:"+e);}
       });
     }
     else{
