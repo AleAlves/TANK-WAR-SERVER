@@ -60,7 +60,7 @@ io.sockets.on('connection', function (socket) {
                 if(clientId.indexOf(socket.id)%2 == 1)
                     index--;
               client[index].emit('off',1);
-              acessos-2;
+              acessos--;
               par = 0;
           }catch(e){ console.log(e);}
       });
