@@ -13,7 +13,7 @@ server.listen(port, function () {
 });
 
 app.get('/', function(req, res){
-  res.sendfile('index.html');
+  res.sendFile('index.html');
 });
 
 var client = new Array(0);
@@ -22,14 +22,35 @@ var acessos = -1;
 var par = 0;
 
 io.sockets.on('connection', function (socket) {
-    if(client.length < 100 ){
 
+    if(client.length < 100 ){
         acessos++;
         par++;
-        clientId[acessos] = socket.id;
-        client.push(socket);
+
+        var j = 0;
+        for(var i = 0;i < clientId.length;i++)
+            if(clientId[i]==null){
+                clientId[i] = socket.id;
+                j++;
+                break;
+            }
+        if(j == 0){
+            clientId.push(socket.id);
+            console.log(" New position");
+        }
+
+        var j = 0;
+        for(var i = 0;i < client.length;i++)
+            if(client[i]==null){
+                client[i] = socket;
+                j++;
+                break;
+            }
+        if(j == 0){
+            client.push(socket);
+        }
         client[clientId.indexOf(socket.id)].emit('id',client.length);
-        console.log("New connection:  " +  socket.request.connection.remoteAddress +" Player Online:  "+client.length +" Index: "+client.indexOf(socket)+" "+socket.id+" Acessos:"+acessos+"  Par:"+par);
+        console.log("New connection:  " +  socket.request.connection.remoteAddress +" Players Online:  "+client.length +" Index: "+client.indexOf(socket)+" "+socket.id+" Acessos:"+acessos+"  Par:"+par);
 
        if(par == 2){
             var i = client.indexOf(socket);
@@ -46,21 +67,29 @@ io.sockets.on('connection', function (socket) {
                 client[clientId.indexOf(id)].emit('serverData', msg);
             }catch(e){
                 socket.emit('off',1);
-                console.log("Oponente desconectou");
+                console.log("Player has disconnected");
             }
        });
 
       socket.on('disconnect', function() {
           try{
-              console.log("saiu...Paritda encerrada "+client.length+" - "+ socket.id+" removido em:"+clientId.indexOf(socket.id));
-              if(acessos > 0 && par > 0){
+              var index = clientId.indexOf(socket.id);
+              client[index] = null;
+              clientId[index] = null;
+              console.log("exit..game over "+client.length+" - "+ socket.id+" removed in:"+index);
+              if(index == client.length-1){
+                client.pop();
+                clientId.pop();
+                console.log("last element removed")
+              }
+              if(par > 0){
                 par--;
               }
           }catch(e){ console.log("disconnect error:"+e);}
       });
     }
     else{
-        console.log("sala cheia");
+        console.log("Server fulll");
         socket.emit("full",1);
     }
 });
