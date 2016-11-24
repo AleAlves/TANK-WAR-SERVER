@@ -13,7 +13,7 @@ server.listen(port, function () {
 });
 
 app.get('/', function(req, res){
-  res.sendFile('index.html');
+  res.sendfile('index.html');
 });
 
 var client = new Array(0);
