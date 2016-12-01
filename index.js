@@ -1,11 +1,11 @@
-console.log("Server on");
+console.log("Starting server");
 
 var express = require('express');
 var app = express();
 var server = require('http').createServer(app);
 var io = require('socket.io')(server);
 var port = 8080;
-io.set('heartbeat interval', 1);
+io.set('heartbeat interval', 100000);
 io.set('heartbeat timeout', 240000);
 
 server.listen(port, function () {
@@ -13,7 +13,7 @@ server.listen(port, function () {
 });
 
 app.get('/', function(req, res){
-  res.sendFile('index.html');
+  res.sendfile('index.html');
 });
 
 var client = new Array(0);
@@ -23,54 +23,38 @@ var par = 0;
 
 io.sockets.on('connection', function (socket) {
 
-    if(client.length < 100 ){
+    if(client.length < 1000 ){
         acessos++;
         par++;
-         var j = 0;
-        for(var i = 0;i < clientId.length;i++)
-            if(clientId[i]==null){
-                clientId[i] = socket.id;
-                j++;
-                console.log(" Used position");
-                break;
-            }
-        if(j == 0){
-            clientId.push(socket.id);
-            console.log(" New position");
-        }
-
-        var j = 0;
-        for(var i = 0;i < client.length;i++)
-            if(client[i]==null){
-                client[i] = socket;
-                j++;
-                break;
-            }
-        if(j == 0){
-            client.push(socket);
-        }
-        client[clientId.indexOf(socket.id)].emit('id',client.length);
-        console.log("New connection:  " +  socket.request.connection.remoteAddress +" Player Online:  "+client.length +" Index: "+client.indexOf(socket)+" "+socket.id+" Acessos:"+acessos+"  Par:"+par);
-
-       if(par == 2){
+        clientId.push(socket.id);
+        client.push(socket);
+        socket.emit('id',par%2);
+        console.log("New connection:  " +  socket.request.connection.remoteAddress +" Player Online:  "+client.length +" Index: "+client.indexOf(socket)+" "+socket.id+" Access n#:"+acessos+"  Par:"+par);
+       
+       try{
+        if(par == 2){
             var i = clientId.indexOf(socket.id);
             var j = i;
             if(i%2 == 0)
                 j++;
             else
                 j--;
-            client[i].emit('gameOn',clientId[j]);
             client[j].emit('gameOn',clientId[i]);
+            client[i].emit('gameOn',clientId[j]);
+            console.log("Send id:"+i+" to :"+j);
+            console.log("Send id:"+j+" to :"+i);
             console.log('Game on');
             par = 0;
         }
 
+       }catch(e){ console.log("Could not start a game");}
+        
         socket.on('update', function(id,msg){
             try{
                 client[clientId.indexOf(id)].emit('serverData', msg);
             }catch(e){
                 socket.emit('off',1);
-                console.log("Oponente desconectou");
+                console.log("Player has disconnected");
             }
        });
 
@@ -79,15 +63,42 @@ io.sockets.on('connection', function (socket) {
               var index = clientId.indexOf(socket.id);
               client[index] = null;
               clientId[index] = null;
-              console.log("exited...Game over"+client.length+" - "+ socket.id+" removed at:"+index);
-                if(par > 0)
+              
+                for(var i = 0; i < client.length; i++){
+                            if(client[i] == null){
+                                var k = i;
+                                for(var j = i + 1; j< client.length;j++)
+                                    if(client[j] != null){
+                                        client[k] = client[j];
+                                        client[j] = null;
+                                        k++;
+                                    }
+                                client.pop();
+                            }
+                        }
+
+                for(var i = 0; i < clientId.length; i++){
+                        if(clientId[i] == null){
+                            var k = i;
+                            for(var j = i + 1; j< clientId.length;j++)
+                                if(clientId[j] != null){
+                                    clientId[k] = clientId[j];
+                                    clientId[j] = null;
+                                    k++;
+                                }
+                            clientId.pop();
+                        }
+                    }
+                if(client.length == 0 && clientId.length == 0 && par > 0)
+                    par = 0;
+                if(client.length == 0 && clientId.length == 0 && par%2 == 1)
                     par--;
-              console.log("last element removed, size:"+ client.length +" id "+ clientId.length);
+              console.log("Player exited...Game over, "+client.length+" - "+ socket.id+" removed");
           }catch(e){ console.log("disconnect error:"+e);}
       });
     }
     else{
-        console.log("server full");
+        console.log("Server full");
         socket.emit("full",1);
     }
 });
